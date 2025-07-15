@@ -7,8 +7,7 @@ import ProductDetail from './pages/ProductDetail';
 function App() {
   return (
     <Router>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
-        <h1>Insurance Products RAG</h1>
+      <div>
         <Routes>
           <Route path="/" element={<ProductSearch />} />
           <Route path="/product/:id" element={<ProductDetail />} />
