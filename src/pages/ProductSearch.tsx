@@ -1,8 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import apiClient from '../api/axios';
+import ReactMarkdown from 'react-markdown';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface Business {
   _id: string;
@@ -25,9 +27,19 @@ interface SuggestionQuery {
 const ProductSearch: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
+  const [summary, setSummary] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === 'left' ? -300 : 300;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
   
   // Get query from URL parameters
   const query = searchParams.get('q') || '';
@@ -71,10 +83,11 @@ const ProductSearch: React.FC = () => {
       }
       setLoading(true);
       try {
-        const response = await apiClient.get('/search', {
+        const response = await apiClient.get<{ summary: string, products: Product[] }>('/search', {
           params: { search: query },
         });
-        setProducts(response.data);
+        setProducts(response.data.products);
+        setSummary(response.data.summary);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -84,6 +97,19 @@ const ProductSearch: React.FC = () => {
 
     fetchProducts();
   }, [query]);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (carouselRef.current) {
+        const { scrollWidth, clientWidth } = carouselRef.current;
+        setShowScrollButtons(scrollWidth > clientWidth);
+      }
+    };
+
+    checkOverflow();
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [products]);
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
@@ -547,31 +573,7 @@ const ProductSearch: React.FC = () => {
               </div>
             </div>
 
-            {/* Products count indicator */}
-            {query && (
-              <div style={{
-                marginBottom: '24px',
-                padding: '16px 0',
-                borderBottom: `1px solid ${theme.border}`
-              }}>
-                <span style={{
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  color: theme.text
-                }}>
-                  {loading ? 'Searching...' : `${products.length} product${products.length !== 1 ? 's' : ''} found`}
-                </span>
-                {query && !loading && (
-                  <span style={{
-                    fontSize: '14px',
-                    color: theme.textSecondary,
-                    marginLeft: '8px'
-                  }}>
-                    for "{query}"
-                  </span>
-                )}
-              </div>
-            )}
+            
 
             {/* Results - show in same container */}
             {loading ? (
@@ -599,16 +601,91 @@ const ProductSearch: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="product-grid" style={{ 
-                display: 'grid',
-                gap: '24px',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                marginTop: '24px',
-                width: '100%'
-              }}>
-                {products.map(product => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
+              <div>
+                {products.length > 0 && (
+                  <div style={{ position: 'relative', marginBottom: '24px' }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>Products</h2>
+                    <div 
+                      ref={carouselRef}
+                      style={{
+                      display: 'flex',
+                      gap: '16px',
+                      overflowX: 'auto',
+                      overflowY: 'hidden',
+                      paddingBottom: '16px',
+                      scrollbarWidth: 'none', // Firefox
+                      alignItems: 'baseline',
+                    }}>
+                      {products.map(product => (
+                        <ProductCard key={product._id} product={product} />
+                      ))}
+                    </div>
+                    {showScrollButtons && (
+                      <>
+                        <button 
+                          onClick={() => scroll('left')} 
+                          style={{ 
+                            position: 'absolute', 
+                            left: '-20px', 
+                            top: '50%', 
+                            transform: 'translateY(-50%)', 
+                            background: theme.surface,
+                            border: `1px solid ${theme.border}`,
+                            borderRadius: '50%', 
+                            width: '40px', 
+                            height: '40px', 
+                            cursor: 'pointer', 
+                            zIndex: 1, 
+                            display: 'grid', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
+                        >
+                          <FaChevronLeft color={theme.text} size={20} />
+                        </button>
+                        <button 
+                          onClick={() => scroll('right')} 
+                          style={{ 
+                            position: 'absolute', 
+                            right: '-20px', 
+                            top: '50%', 
+                            transform: 'translateY(-50%)', 
+                            background: theme.surface,
+                            border: `1px solid ${theme.border}`,
+                            borderRadius: '50%', 
+                            width: '40px', 
+                            height: '40px', 
+                            cursor: 'pointer', 
+                            zIndex: 1, 
+                            display: 'grid', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)'}
+                          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
+                        >
+                          <FaChevronRight color={theme.text} size={20} />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {summary && (
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                    marginBottom: '24px',
+                  }}>
+                    <ReactMarkdown>{summary}</ReactMarkdown>
+                  </div>
+                )}
               </div>
             )}
           </div>
