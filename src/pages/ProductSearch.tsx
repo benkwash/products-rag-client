@@ -1,8 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import apiClient from '../api/axios';
+import ReactMarkdown from 'react-markdown';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import {SlArrowDown,SlArrowUp} from 'react-icons/sl';
 
 interface Business {
   _id: string;
@@ -25,9 +28,20 @@ interface SuggestionQuery {
 const ProductSearch: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
+  const [summary, setSummary] = useState('');
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === 'left' ? -300 : 300;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
   
   // Get query from URL parameters
   const query = searchParams.get('q') || '';
@@ -71,10 +85,11 @@ const ProductSearch: React.FC = () => {
       }
       setLoading(true);
       try {
-        const response = await apiClient.get('/search', {
+        const response = await apiClient.get<{ summary: string, products: Product[] }>('/search', {
           params: { search: query },
         });
-        setProducts(response.data);
+        setProducts(response.data.products);
+        setSummary(response.data.summary);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -547,31 +562,7 @@ const ProductSearch: React.FC = () => {
               </div>
             </div>
 
-            {/* Products count indicator */}
-            {query && (
-              <div style={{
-                marginBottom: '24px',
-                padding: '16px 0',
-                borderBottom: `1px solid ${theme.border}`
-              }}>
-                <span style={{
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  color: theme.text
-                }}>
-                  {loading ? 'Searching...' : `${products.length} product${products.length !== 1 ? 's' : ''} found`}
-                </span>
-                {query && !loading && (
-                  <span style={{
-                    fontSize: '14px',
-                    color: theme.textSecondary,
-                    marginLeft: '8px'
-                  }}>
-                    for "{query}"
-                  </span>
-                )}
-              </div>
-            )}
+            
 
             {/* Results - show in same container */}
             {loading ? (
@@ -599,16 +590,80 @@ const ProductSearch: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="product-grid" style={{ 
-                display: 'grid',
-                gap: '24px',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-                marginTop: '24px',
-                width: '100%'
-              }}>
-                {products.map(product => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
+              <div>
+                 {summary && (
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                  }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Summary</h2>
+                    <div style={{
+                      maxHeight: isSummaryExpanded ? 'none' : '7em', // Approx 3 lines
+                      overflow: 'hidden',
+                      position: 'relative',
+                      lineHeight: '1.5em',
+                      transition: 'max-height 0.3s ease-in-out',
+                    }}>
+                      <ReactMarkdown>{summary}</ReactMarkdown>
+                      {!isSummaryExpanded && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '3em',
+                          background: `linear-gradient(to top, ${theme.background} 0%, transparent 100%)`,
+                        }} />
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: theme.accent,
+                        cursor: 'pointer',
+                        marginTop: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        boxShadow: 'none',
+                      }}
+                    >
+                      {isSummaryExpanded ?
+                       <span>
+                         Show Less <SlArrowUp color={theme.accent} size={10}/>
+                       </span>:
+                        <span>
+                          Show More <SlArrowDown color={theme.accent} size={10} />
+                        </span>
+                      }
+                    </button>
+                  </div>
+                )}
+                <hr style={{color:theme.border}}></hr>
+
+                {products.length > 0 && (
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                      padding: '0 8px',
+                    }}>
+                      <span style={{ fontSize: '14px', color: theme.textSecondary }}>
+                        {products.length} Products
+                      </span>
+                    </div>
+                    <div>
+                      {products.map(product => (
+                        <ProductCard key={product._id} product={product} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+               
               </div>
             )}
           </div>
