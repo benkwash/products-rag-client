@@ -37,6 +37,7 @@ const ProductDetail: React.FC = () => {
       return {
         background: '#1a1a1a',
         surface: '#2d2d2d',
+        header: '#2d2d2d',
         surfaceHover: '#3a3a3a',
         text: '#e8eaed',
         textSecondary: '#9aa0a6',
@@ -49,6 +50,7 @@ const ProductDetail: React.FC = () => {
       return {
         background: '#ffffff',
         surface: '#ffffff',
+        header: '#f7f7f7',
         surfaceHover: '#f8f9fa',
         text: '#202124',
         textSecondary: '#5f6368',
@@ -221,7 +223,7 @@ const ProductDetail: React.FC = () => {
 
       {/* Product Header Section */}
       <div style={{
-        backgroundColor: isDarkMode ? theme.background : '#f9f7f4',
+        backgroundColor: theme.header,
         padding: '40px 32px',
         borderBottom: `1px solid ${theme.border}`
       }}>
@@ -236,7 +238,7 @@ const ProductDetail: React.FC = () => {
           <div style={{
             width: '200px',
             height: '160px',
-            backgroundColor: theme.surface,
+            backgroundColor: theme.background,
             borderRadius: '16px',
             padding: '20px',
             display: 'flex',
@@ -246,7 +248,7 @@ const ProductDetail: React.FC = () => {
             flexShrink: 0
           }}>
             <img 
-              src={product.imageUrl || product.business.image} 
+              src={product.business.image} 
               alt={product.business.name} 
               style={{ 
                 maxWidth: '100%',
@@ -502,7 +504,9 @@ const ProductDetail: React.FC = () => {
               fontWeight: '500',
               marginBottom: '4px'
             }}>
-              💡 Need Help?
+              <a href="https://myfigtech.com/" style={{ color: theme.accent, textDecoration: 'none' }} target="_blank">
+                💡 Need Help?
+              </a>
             </div>
             <div style={{
               fontSize: '12px',
