@@ -9,6 +9,7 @@ interface Business {
   name: string;
   description: string;
   image: string;
+  website: string;
 }
 
 interface Product {
@@ -16,6 +17,8 @@ interface Product {
   name: string;
   description: string;
   business: Business;
+  imageUrl?: string;
+  website: string;
 }
 
 const ProductDetail: React.FC = () => {
@@ -243,27 +246,14 @@ const ProductDetail: React.FC = () => {
             flexShrink: 0
           }}>
             <img 
-              src={product.business.image} 
+              src={product.imageUrl || product.business.image} 
               alt={product.business.name} 
               style={{ 
                 maxWidth: '100%',
                 maxHeight: '100%',
-                objectFit: 'contain'
-              }}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling.style.display = 'flex';
+                objectFit: 'cover'
               }}
             />
-            <div style={{
-              display: 'none',
-              fontSize: '14px',
-              color: theme.textSecondary,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              No Image
-            </div>
           </div>
           
           {/* Product Info and Purchase Button */}
@@ -287,7 +277,9 @@ const ProductDetail: React.FC = () => {
             }}>
               <span>By</span>
               <span style={{ fontWeight: '500', color: theme.accent }}>
-                {product.business.name}
+                <a href={product.business.website} target='_blank' rel='noopener noreferrer' style={{ color: theme.accent, textDecoration: 'none' }}>
+                  {product.business.name}
+                </a>
               </span>
             </div>
             
@@ -299,7 +291,7 @@ const ProductDetail: React.FC = () => {
             }}>
               <button
                 onClick={() => {
-                  alert(`Initiating purchase for ${product.name}`);
+                  window.open(product.website, '_blank');
                 }}
                 style={{
                   padding: '16px 32px',
@@ -327,7 +319,7 @@ const ProductDetail: React.FC = () => {
                 Purchase Now
               </button>
               
-              <button
+              {/* <button
                 onClick={() => {
                   alert(`Added ${product.name} to cart`);
                 }}
@@ -356,11 +348,11 @@ const ProductDetail: React.FC = () => {
                 }}
               >
                 Add to Cart
-              </button>
+              </button> */}
             </div>
 
             {/* Quick Info */}
-            <div style={{
+            {/* <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '16px',
@@ -381,7 +373,7 @@ const ProductDetail: React.FC = () => {
                 <span>Available</span>
               </div>
               <div>💡 Expert support available</div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

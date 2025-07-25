@@ -5,6 +5,7 @@ import ProductCard from '../components/ProductCard';
 import apiClient from '../api/axios';
 import ReactMarkdown from 'react-markdown';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import {SlArrowDown,SlArrowUp} from 'react-icons/sl';
 
 interface Business {
   _id: string;
@@ -28,6 +29,7 @@ const ProductSearch: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [summary, setSummary] = useState('');
+  const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -97,19 +99,6 @@ const ProductSearch: React.FC = () => {
 
     fetchProducts();
   }, [query]);
-
-  useEffect(() => {
-    const checkOverflow = () => {
-      if (carouselRef.current) {
-        const { scrollWidth, clientWidth } = carouselRef.current;
-        setShowScrollButtons(scrollWidth > clientWidth);
-      }
-    };
-
-    checkOverflow();
-    window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
-  }, [products]);
 
   const handleSearch = () => {
     if (searchTerm.trim()) {
@@ -602,90 +591,79 @@ const ProductSearch: React.FC = () => {
               </div>
             ) : (
               <div>
-                {products.length > 0 && (
-                  <div style={{ position: 'relative', marginBottom: '24px' }}>
-                    <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>Products</h2>
-                    <div 
-                      ref={carouselRef}
-                      style={{
-                      display: 'flex',
-                      gap: '16px',
-                      overflowX: 'auto',
-                      overflowY: 'hidden',
-                      paddingBottom: '16px',
-                      scrollbarWidth: 'none', // Firefox
-                      alignItems: 'baseline',
+                 {summary && (
+                  <div style={{
+                    padding: '16px',
+                    borderRadius: '8px',
+                  }}>
+                    <h2 style={{ fontSize: '18px', fontWeight: '500', marginBottom: '8px' }}>Summary</h2>
+                    <div style={{
+                      maxHeight: isSummaryExpanded ? 'none' : '7em', // Approx 3 lines
+                      overflow: 'hidden',
+                      position: 'relative',
+                      lineHeight: '1.5em',
+                      transition: 'max-height 0.3s ease-in-out',
                     }}>
+                      <ReactMarkdown>{summary}</ReactMarkdown>
+                      {!isSummaryExpanded && (
+                        <div style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '3em',
+                          background: `linear-gradient(to top, ${theme.background} 0%, transparent 100%)`,
+                        }} />
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: theme.accent,
+                        cursor: 'pointer',
+                        marginTop: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        boxShadow: 'none',
+                      }}
+                    >
+                      {isSummaryExpanded ?
+                       <span>
+                         Show Less <SlArrowUp color={theme.accent} size={10}/>
+                       </span>:
+                        <span>
+                          Show More <SlArrowDown color={theme.accent} size={10} />
+                        </span>
+                      }
+                    </button>
+                  </div>
+                )}
+                <hr style={{color:theme.border}}></hr>
+
+                {products.length > 0 && (
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '8px',
+                      padding: '0 8px',
+                    }}>
+                      <span style={{ fontSize: '14px', color: theme.textSecondary }}>
+                        {products.length} Products
+                      </span>
+                    </div>
+                    <div>
                       {products.map(product => (
                         <ProductCard key={product._id} product={product} />
                       ))}
                     </div>
-                    {showScrollButtons && (
-                      <>
-                        <button 
-                          onClick={() => scroll('left')} 
-                          style={{ 
-                            position: 'absolute', 
-                            left: '-20px', 
-                            top: '50%', 
-                            transform: 'translateY(-50%)', 
-                            background: theme.surface,
-                            border: `1px solid ${theme.border}`,
-                            borderRadius: '50%', 
-                            width: '40px', 
-                            height: '40px', 
-                            cursor: 'pointer', 
-                            zIndex: 1, 
-                            display: 'grid', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)'}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
-                        >
-                          <FaChevronLeft color={theme.text} size={20} />
-                        </button>
-                        <button 
-                          onClick={() => scroll('right')} 
-                          style={{ 
-                            position: 'absolute', 
-                            right: '-20px', 
-                            top: '50%', 
-                            transform: 'translateY(-50%)', 
-                            background: theme.surface,
-                            border: `1px solid ${theme.border}`,
-                            borderRadius: '50%', 
-                            width: '40px', 
-                            height: '40px', 
-                            cursor: 'pointer', 
-                            zIndex: 1, 
-                            display: 'grid', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                            transition: 'all 0.2s ease'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)'}
-                          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(-50%) scale(1)'}
-                        >
-                          <FaChevronRight color={theme.text} size={20} />
-                        </button>
-                      </>
-                    )}
                   </div>
                 )}
 
-                {summary && (
-                  <div style={{
-                    padding: '16px',
-                    borderRadius: '8px',
-                    marginBottom: '24px',
-                  }}>
-                    <ReactMarkdown>{summary}</ReactMarkdown>
-                  </div>
-                )}
+               
               </div>
             )}
           </div>
