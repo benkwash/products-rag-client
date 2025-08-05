@@ -9,6 +9,7 @@ interface Business {
   name: string;
   description: string;
   image: string;
+  website: string;
 }
 
 interface Product {
@@ -16,6 +17,8 @@ interface Product {
   name: string;
   description: string;
   business: Business;
+  imageUrl?: string;
+  website: string;
 }
 
 const ProductDetail: React.FC = () => {
@@ -34,6 +37,7 @@ const ProductDetail: React.FC = () => {
       return {
         background: '#1a1a1a',
         surface: '#2d2d2d',
+        header: '#2d2d2d',
         surfaceHover: '#3a3a3a',
         text: '#e8eaed',
         textSecondary: '#9aa0a6',
@@ -46,6 +50,7 @@ const ProductDetail: React.FC = () => {
       return {
         background: '#ffffff',
         surface: '#ffffff',
+        header: '#f7f7f7',
         surfaceHover: '#f8f9fa',
         text: '#202124',
         textSecondary: '#5f6368',
@@ -218,7 +223,7 @@ const ProductDetail: React.FC = () => {
 
       {/* Product Header Section */}
       <div style={{
-        backgroundColor: isDarkMode ? theme.background : '#f9f7f4',
+        backgroundColor: theme.header,
         padding: '40px 32px',
         borderBottom: `1px solid ${theme.border}`
       }}>
@@ -233,7 +238,7 @@ const ProductDetail: React.FC = () => {
           <div style={{
             width: '200px',
             height: '160px',
-            backgroundColor: theme.surface,
+            backgroundColor: theme.background,
             borderRadius: '16px',
             padding: '20px',
             display: 'flex',
@@ -248,22 +253,9 @@ const ProductDetail: React.FC = () => {
               style={{ 
                 maxWidth: '100%',
                 maxHeight: '100%',
-                objectFit: 'contain'
-              }}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling.style.display = 'flex';
+                objectFit: 'cover'
               }}
             />
-            <div style={{
-              display: 'none',
-              fontSize: '14px',
-              color: theme.textSecondary,
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              No Image
-            </div>
           </div>
           
           {/* Product Info and Purchase Button */}
@@ -287,7 +279,9 @@ const ProductDetail: React.FC = () => {
             }}>
               <span>By</span>
               <span style={{ fontWeight: '500', color: theme.accent }}>
-                {product.business.name}
+                <a href={product.business.website} target='_blank' rel='noopener noreferrer' style={{ color: theme.accent, textDecoration: 'none' }}>
+                  {product.business.name}
+                </a>
               </span>
             </div>
             
@@ -299,7 +293,7 @@ const ProductDetail: React.FC = () => {
             }}>
               <button
                 onClick={() => {
-                  alert(`Initiating purchase for ${product.name}`);
+                  window.open(product.website, '_blank');
                 }}
                 style={{
                   padding: '16px 32px',
@@ -327,7 +321,7 @@ const ProductDetail: React.FC = () => {
                 Purchase Now
               </button>
               
-              <button
+              {/* <button
                 onClick={() => {
                   alert(`Added ${product.name} to cart`);
                 }}
@@ -356,11 +350,11 @@ const ProductDetail: React.FC = () => {
                 }}
               >
                 Add to Cart
-              </button>
+              </button> */}
             </div>
 
             {/* Quick Info */}
-            <div style={{
+            {/* <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '16px',
@@ -381,7 +375,7 @@ const ProductDetail: React.FC = () => {
                 <span>Available</span>
               </div>
               <div>💡 Expert support available</div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>
@@ -510,7 +504,9 @@ const ProductDetail: React.FC = () => {
               fontWeight: '500',
               marginBottom: '4px'
             }}>
-              💡 Need Help?
+              <a href="https://myfigtech.com/" style={{ color: theme.accent, textDecoration: 'none' }} target="_blank">
+                💡 Need Help?
+              </a>
             </div>
             <div style={{
               fontSize: '12px',
